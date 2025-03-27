@@ -1,0 +1,40 @@
+version: '2'
+services:
+  mysql:
+    container_name: test-doctrine_audit-mysql
+    hostname: mysql
+    image: gitlab.prestaconcept.net:7443/docker/mysql:8.0
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./.led/storage/mysql:/home/data
+      - ./.led/storage/dump:/dump
+    extends:
+      file: $HOME/.led/docker-base.yaml
+      service: localuser
+  php:
+    container_name: test-doctrine_audit-php
+    hostname: php
+    image: ledup/php:8.3
+    volumes:
+      - .:/src
+    working_dir: /src
+    extends:
+      file: $HOME/.led/docker-base.yaml
+      service: localuser
+  nginx:
+    container_name: test-doctrine_audit-nginx
+    hostname: nginx
+    image: ledup/nginx:stable
+    volumes:
+      - .:/src
+    ports:
+      - "80:80"
+    working_dir: /src
+    environment:
+      LED_DOCROOT: public
+      LED_VHOSTS: app.localhost
+      LED_PHPFPM_SOCKET: php:9000
+    extends:
+      file: $HOME/.led/docker-base.yaml
+      service: localuser
