@@ -36,6 +36,8 @@ class FixturesCommand extends Command
         $task->setAssignedTo($user1);
         $this->entityManager->persist($task);
 
+        $this->entityManager->flush();
+
         return Command::SUCCESS;
     }
 }
