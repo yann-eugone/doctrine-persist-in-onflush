@@ -67,6 +67,14 @@ class AuditEvent
         $this->createdAt = $createdAt ?: new DateTimeImmutable();
     }
 
+    /**
+     * @return Collection<int, AuditEventRelation>
+     */
+    public function getRelations(): Collection
+    {
+        return $this->relations;
+    }
+
     public function getName(): string
     {
         return $this->name;

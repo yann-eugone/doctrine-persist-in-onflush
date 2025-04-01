@@ -6,6 +6,7 @@ namespace App\Listener;
 
 use App\Entity\AuditableInterface;
 use App\Entity\AuditEvent;
+use App\Entity\AuditEventRelation;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Events;
@@ -20,6 +21,7 @@ final class AuditEntitiesListener
         $entityManager = $event->getObjectManager();
         $unitOfWork = $event->getObjectManager()->getUnitOfWork();
         $eventMetadata = $entityManager->getClassMetadata(AuditEvent::class);
+        $eventRelationMetadata = $entityManager->getClassMetadata(AuditEventRelation::class);
         foreach ($unitOfWork->getScheduledEntityUpdates() as $entity) {
             if (!$entity instanceof AuditableInterface) {
                 continue;
@@ -37,10 +39,15 @@ final class AuditEntitiesListener
             if ($this->mode === 'persist') {
                 $entityManager->persist($event);
                 $unitOfWork->computeChangeSet($eventMetadata, $event);
+                foreach ($event->getRelations() as $relation) {
+                    $entityManager->persist($relation);
+                    $unitOfWork->computeChangeSet($eventRelationMetadata, $relation);
+                }
             } elseif ($this->mode === 'record') {
                 $entity->recordEvent($event);
                 $entityMetadata = $entityManager->getClassMetadata($entity::class);
                 $unitOfWork->recomputeSingleEntityChangeSet($entityMetadata, $entity);
+                // still no idea how to do it here
             }
         }
     }
